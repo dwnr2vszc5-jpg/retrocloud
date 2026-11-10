@@ -126,3 +126,15 @@ def test_core_symlinks_into_distro_dir_are_allowed(tmp_path: Path) -> None:
     (tmp_path / "roms" / "nes" / "a.nes").write_bytes(b"x")
     cat = _cat(tmp_path)
     assert [g["available"] for g in cat.available()] == [True]
+
+
+def test_handheld_style_folder_names_are_recognised(tmp_path: Path) -> None:
+    roms = tmp_path / "roms"
+    for rel in ("megadrive/Game A.md", "genesis/Game B.gen", "mastersystem/C.sms", "fbneo/d.zip"):
+        (roms / rel).parent.mkdir(parents=True, exist_ok=True)
+        (roms / rel).write_bytes(b"x")
+    by_sys: dict[str, list[str]] = {}
+    for g in _cat(tmp_path).games.values():
+        by_sys.setdefault(g.system, []).append(g.rom)
+    assert sorted(by_sys["md"]) == ["genesis/Game B.gen", "megadrive/Game A.md"]
+    assert by_sys["sms"] == ["mastersystem/C.sms"] and by_sys["arcade"] == ["fbneo/d.zip"]

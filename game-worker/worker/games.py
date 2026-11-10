@@ -28,6 +28,9 @@ class System(BaseModel):
     core: str = Field(pattern=CORE_RE)
     extensions: list[str]
     bios: list[str] = []
+    # extra folder names for the same system, e.g. "megadrive"/"genesis" for md, so an
+    # EmulationStation-style roms/ layout copied from a handheld's SD card works as is
+    folders: list[str] = []
 
 
 class Game(BaseModel):
@@ -93,8 +96,14 @@ class Catalog:
 
     # ---------- folder scan ----------
     def _scan_system(self, sysdef: System, budget: list[int]) -> list[Game]:
-        root = self.roms_dir / sysdef.id
-        if not root.is_dir():
+        found: list[Game] = []
+        for folder in dict.fromkeys([sysdef.id, *sysdef.folders]):
+            if re.fullmatch(r"[a-z0-9_-]{1,32}", folder):
+                found += self._scan_folder(sysdef, self.roms_dir / folder, budget)
+        return found
+
+    def _scan_folder(self, sysdef: System, root: Path, budget: list[int]) -> list[Game]:
+        if not root.is_dir() or root.is_symlink():
             return []
         exts = {e.lower() for e in sysdef.extensions}
         found: list[Game] = []

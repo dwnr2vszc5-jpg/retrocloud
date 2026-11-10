@@ -136,6 +136,12 @@
   // keep a heartbeat even when the tab is hidden (rAF pauses there)
   setInterval(() => flushInput(), 1000);
 
+  // no context menu / text selection / iOS callout from long presses anywhere on the player
+  for (const ev of ["contextmenu", "selectstart", "dragstart"]) document.addEventListener(ev, (e) => e.preventDefault());
+  // iOS Safari ignores user-scalable=no; block pinch and double-tap zoom while playing
+  document.addEventListener("gesturestart", (e) => e.preventDefault());
+  document.addEventListener("dblclick", (e) => e.preventDefault(), { passive: false });
+
   // touch controls
   if (matchMedia("(pointer: coarse)").matches) $("touch").hidden = false;
   document.querySelectorAll("#touch [data-b]").forEach((el) => {
@@ -143,6 +149,8 @@
     const on = (e) => { e.preventDefault(); touchMask |= BIT[b]; el.classList.add("on"); flushInput(); };
     const off = (e) => { e.preventDefault(); touchMask &= ~BIT[b]; el.classList.remove("on"); flushInput(); };
     el.addEventListener("pointerdown", on);
+    // iOS: a long touchstart would otherwise start a text selection / callout
+    el.addEventListener("touchstart", (e) => e.preventDefault(), { passive: false });
     ["pointerup", "pointercancel", "pointerleave"].forEach((t) => el.addEventListener(t, off));
   });
 

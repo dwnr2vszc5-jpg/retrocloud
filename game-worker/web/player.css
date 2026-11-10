@@ -1,5 +1,11 @@
 :root { --bg:#0b0d12; --fg:#e8ecf3; --muted:#8b93a7; --accent:#5b8cff; }
 * { box-sizing:border-box; }
+/* iOS/Android: long-pressing a control must not open the copy/select callout, magnifier or zoom */
+html, body, #stage, #touch, #touch * , video {
+  -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent;
+}
+#touch, #touch * { touch-action:none; }
+body { touch-action:manipulation; }
 html,body { margin:0; height:100%; background:var(--bg); color:var(--fg); font:14px system-ui,sans-serif; overflow:hidden; }
 #stage { position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
 video { width:100%; height:100%; object-fit:contain; background:#000; }

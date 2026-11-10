@@ -56,6 +56,8 @@ Sunucuda `/srv/retrocloud/roms/<sistem>/` klasörüne konan her oyun, launcher'd
 | `atari2600` | Atari 2600 | Stella 2014 | .a26 .bin |
 | `arcade`, `neogeo` | Arcade, Neo Geo | FinalBurn Neo | .zip (romset adı değişmemeli; Neo Geo için `bios/neogeo.zip`) |
 
+El konsollarının SD kart düzenindeki klasör adları da tanınır (`megadrive`, `genesis`, `mastersystem`, `gamegear`, `pcengine`, `wonderswan`, `fbneo`, `mame`, `ps1` …; tam liste `systems.json` → `folders`). Not: `mame` klasöründeki setler FinalBurn Neo ile açılır; FBNeo'nun desteklemediği MAME setleri çalışmaz.
+
 BIOS dosyaları `roms/bios/` klasörüne konur (her oturuma salt okunur bağlanır). PS1 BIOS'suz çalışır; gerçek BIOS (`scph5501.bin` vb.) koyarsanız uyumluluk artar. Sistem listesi `game-worker/config/systems.json`'da; yeni sistem eklemek için core'u Dockerfile'a, satırı bu dosyaya ekleyin.
 
 **Yasal not:** Telifli oyunları biz dağıtmıyoruz. Sadece sahip olduğunuz oyunların kendi yedeklerini, kendi sunucunuzda, kendiniz için kullanın. Repo ve imaj hiçbir telifli ROM/BIOS içermez.
