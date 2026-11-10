@@ -7,5 +7,23 @@
     "rom": "testpad/testpad.nes",
     "license": "MIT - written for this project",
     "notes": "D-pad moves the square, A beeps, B changes colour. Used by automated tests."
+  },
+  {
+    "id": "libbet",
+    "title": "Libbet and the Magic Floor (Game Boy)",
+    "system": "gb",
+    "core": "gambatte_libretro.so",
+    "rom": "homebrew/libbet.gb",
+    "license": "zlib - Damian Yerrick (pinobatch), https://github.com/pinobatch/libbet",
+    "notes": "Puzzle-platformer. Fetch with scripts/fetch_homebrew.sh (not committed)."
+  },
+  {
+    "id": "croom",
+    "title": "Concentration Room (NES)",
+    "system": "nes",
+    "core": "nestopia_libretro.so",
+    "rom": "homebrew/croom.nes",
+    "license": "GPL-3.0 - Damian Yerrick (pinobatch), https://github.com/pinobatch/croom-nes",
+    "notes": "Memory card game, 1-2 players. Fetch with scripts/fetch_homebrew.sh (not committed)."
   }
 ]
