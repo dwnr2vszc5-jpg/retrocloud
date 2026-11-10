@@ -1,0 +1,110 @@
+{
+  "checks": {
+    "webrtc_connected": {
+      "ok": true
+    },
+    "video_received": {
+      "ok": true,
+      "detail": "1280x720 video/H264"
+    },
+    "h264": {
+      "ok": true,
+      "detail": "video/H264"
+    },
+    "audio_received": {
+      "ok": true,
+      "detail": "2 kbps audio/OPUS"
+    },
+    "audio_tone_on_A": {
+      "ok": true,
+      "detail": {
+        "rms_silent": 0,
+        "rms_tone": 0.1273
+      }
+    },
+    "keyboard_input": {
+      "ok": true,
+      "detail": {
+        "before": 159.5,
+        "after": 199.75862068965517,
+        "first_move_ms": 64.9000000001397
+      }
+    },
+    "gamepad_input": {
+      "ok": true,
+      "detail": {
+        "before": 199.8,
+        "after": 155.67441860465115,
+        "first_move_ms": 115.19999999995343
+      }
+    },
+    "latency_measured": {
+      "ok": true,
+      "detail": {
+        "samples": [
+          61,
+          70,
+          84,
+          97,
+          104,
+          107,
+          114,
+          124,
+          128,
+          137
+        ],
+        "median": 107,
+        "max": 137
+      }
+    },
+    "reconnect": {
+      "ok": true,
+      "detail": {
+        "reconnect_ms": 3398,
+        "before_y": 90.56140350877193,
+        "after_y": 120.96685082872928
+      }
+    }
+  },
+  "input_to_video_ms": {
+    "samples": [
+      61,
+      70,
+      84,
+      97,
+      104,
+      107,
+      114,
+      124,
+      128,
+      137
+    ],
+    "median": 107,
+    "max": 137
+  },
+  "summary": {
+    "client_fps_avg": 30,
+    "client_video_kbps_avg": 2981.2,
+    "client_audio_kbps_avg": 2,
+    "client_rtt_ms_avg": 0.7,
+    "client_input_rtt_ms_avg": 1.5,
+    "client_decode_ms_avg": 1.7,
+    "client_jitter_buffer_ms_avg": 12.6,
+    "packets_lost_last": 0,
+    "frames_dropped_last": 0,
+    "server_encoded_fps_avg": 29.7,
+    "server_video_kbps_avg": 2929.7,
+    "retroarch_cpu_pct_avg": 33.3,
+    "xvfb_cpu_pct_avg": 7.1,
+    "pulse_cpu_pct_avg": 2.1,
+    "retroarch_rss_mb": 179.8,
+    "host": {
+      "cpus": 4,
+      "load1": 0.81,
+      "load5": 0.54,
+      "mem_total_mb": 16086,
+      "mem_available_mb": 15015
+    }
+  },
+  "passed": true
+}

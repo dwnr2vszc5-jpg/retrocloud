@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RetroCloud Worker</title>
+<style>
+  :root { --bg:#0b0d12; --card:#151924; --fg:#e8ecf3; --muted:#8b93a7; --accent:#5b8cff; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px system-ui,sans-serif; }
+  main { max-width:760px; margin:0 auto; padding:24px 16px; }
+  h1 { font-size:22px; margin:0 0 4px; } p.sub { color:var(--muted); margin:0 0 20px; }
+  .card { background:var(--card); border-radius:10px; padding:14px 16px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  .card small { color:var(--muted); display:block; }
+  input { width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#0f121a; color:var(--fg); }
+  button { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:9px 14px; cursor:pointer; white-space:nowrap; }
+  button.ghost { background:transparent; border:1px solid #444; }
+  #msg { color:#ff8a8a; min-height:20px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>RetroCloud worker</h1>
+  <p class="sub">Phase 1 geliştirici başlatıcısı. Phase 3'te bu sayfanın yerini kontrol paneli alacak.</p>
+  <label>Worker token<input id="tok" type="password" autocomplete="off" placeholder="RC_WORKER_TOKEN"></label>
+  <p id="msg"></p>
+  <h3>Oyunlar</h3><div id="games"></div>
+  <h3>Aktif oturumlar</h3><div id="sessions"></div>
+</main>
+<script>
+"use strict";
+const tok = document.getElementById("tok"), msg = document.getElementById("msg");
+try { tok.value = sessionStorage.getItem("rc_tok") || ""; } catch {}
+tok.onchange = () => { try { sessionStorage.setItem("rc_tok", tok.value); } catch {} refresh(); };
+const api = async (method, path, body) => {
+  const r = await fetch(path, { method, headers: { "Authorization": "Bearer " + tok.value, "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined });
+  const j = await r.json(); if (!r.ok) throw new Error(j.error || r.status); return j;
+};
+const el = (html) => { const d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstChild; };
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+async function refresh() {
+  msg.textContent = "";
+  if (!tok.value) return;
+  try {
+    const games = await api("GET", "/api/games"), g = document.getElementById("games"); g.replaceChildren();
+    for (const x of games) {
+      const c = el(`<div class="card"><div>${esc(x.title)}<small>${esc(x.system)} · ${esc(x.license)}</small></div><button ${x.available ? "" : "disabled"}>Başlat</button></div>`);
+      c.querySelector("button").onclick = async () => {
+        try { const s = await api("POST", "/api/sessions", { game_id: x.id, owner: "dev" }); window.open(s.play_path + "&stats=1", "_blank"); refresh(); }
+        catch (e) { msg.textContent = e.message; }
+      };
+      g.append(c);
+    }
+    const sessions = await api("GET", "/api/sessions"), s = document.getElementById("sessions"); s.replaceChildren();
+    for (const x of sessions) {
+      const c = el(`<div class="card"><div>${esc(x.game_title)}<small>${esc(x.id)} · ${esc(x.state)} · izleyici: ${x.viewer_connected ? "var" : "yok"}</small></div><button class="ghost">Durdur</button></div>`);
+      c.querySelector("button").onclick = async () => { await api("DELETE", "/api/sessions/" + x.id); refresh(); };
+      s.append(c);
+    }
+  } catch (e) { msg.textContent = e.message; }
+}
+refresh();
+</script>
+</body>
+</html>

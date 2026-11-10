@@ -1,0 +1,7 @@
+tests
+**/__pycache__
+**/*.o
+roms/**/*.s
+roms/**/*.cfg
+roms/**/*.py
+roms/**/*.chr

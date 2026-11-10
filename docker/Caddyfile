@@ -1,0 +1,14 @@
+# HTTPS is required: browsers expose the Gamepad API only to secure contexts.
+# RC_DOMAIN can be a real domain or <ip-with-dashes>.sslip.io (Let's Encrypt works for both).
+{$RC_DOMAIN} {
+	encode gzip
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+	reverse_proxy 127.0.0.1:8080
+	log {
+		output stdout
+		format json
+	}
+}

@@ -1,0 +1,47 @@
+{
+  "checks": {
+    "both_connected": {
+      "ok": true
+    },
+    "input_isolated": {
+      "ok": true,
+      "detail": {
+        "a0": 159.46470588235294,
+        "a1": 227.5,
+        "b0": 159.5,
+        "b1": 159.5
+      }
+    },
+    "cross_token_rejected": {
+      "ok": true,
+      "detail": {
+        "close_code": 4401
+      }
+    },
+    "stop_A_keeps_B": {
+      "ok": true,
+      "detail": {
+        "frames_in_3s": 90
+      }
+    },
+    "only_B_left": {
+      "ok": true,
+      "detail": [
+        "30551f30b4ea1efc"
+      ]
+    }
+  },
+  "summary": {
+    "a_fps": 30,
+    "b_fps": 29.9,
+    "a_kbps": 2985.6,
+    "b_kbps": 3003.6,
+    "a_retroarch_cpu": 30.1,
+    "b_retroarch_cpu": 30.2,
+    "xvfb_cpu_each": 7.2,
+    "worker_cpu_total": 63.6,
+    "host_load1_last": 0.97,
+    "mem_available_mb_last": 15027
+  },
+  "passed": true
+}

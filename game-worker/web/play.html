@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>RetroCloud Player</title>
+<link rel="stylesheet" href="player.css">
+</head>
+<body>
+<div id="stage">
+  <video id="video" autoplay playsinline muted disablepictureinpicture></video>
+  <button id="start" hidden>▶ Başlat / sesi aç</button>
+  <div id="status">Bağlanıyor…</div>
+  <pre id="stats" hidden></pre>
+  <div id="bar">
+    <button id="btn-stats" title="İstatistikler">📊</button>
+    <button id="btn-fs" title="Tam ekran">⛶</button>
+  </div>
+  <div id="touch" hidden>
+    <div class="dpad">
+      <button data-b="up">▲</button><button data-b="left">◀</button>
+      <button data-b="right">▶</button><button data-b="down">▼</button>
+    </div>
+    <div class="meta"><button data-b="select">SELECT</button><button data-b="start">START</button></div>
+    <div class="face"><button data-b="y">Y</button><button data-b="x">X</button><button data-b="b">B</button><button data-b="a">A</button></div>
+  </div>
+</div>
+<script src="player.js"></script>
+</body>
+</html>

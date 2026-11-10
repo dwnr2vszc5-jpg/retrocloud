@@ -1,0 +1,11 @@
+[
+  {
+    "id": "testpad",
+    "title": "RetroCloud TestPad (NES)",
+    "system": "nes",
+    "core": "nestopia_libretro.so",
+    "rom": "testpad/testpad.nes",
+    "license": "MIT - written for this project",
+    "notes": "D-pad moves the square, A beeps, B changes colour. Used by automated tests."
+  }
+]

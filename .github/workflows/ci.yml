@@ -1,0 +1,73 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install worker runtime (same packages as the Docker image)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends retroarch libretro-nestopia libgl1-mesa-dri xvfb pulseaudio \
+            gstreamer1.0-tools gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
+            gstreamer1.0-plugins-ugly gstreamer1.0-x gstreamer1.0-pulseaudio gstreamer1.0-nice \
+            gir1.2-gst-plugins-bad-1.0 gir1.2-gst-plugins-base-1.0 python3-gi python3-aiohttp python3-xlib cc65
+      - name: Rebuild TestPad ROM and check it is reproducible
+        working-directory: game-worker/roms/testpad
+        run: |
+          python3 gen_chr.py
+          ca65 testpad.s -o /tmp/tp.o && ld65 -C nes.cfg /tmp/tp.o -o /tmp/testpad.nes
+          cmp /tmp/testpad.nes testpad.nes
+      - name: pytest
+        working-directory: game-worker
+        run: |
+          /usr/bin/python3 -m pip install --break-system-packages -r requirements-dev.txt
+          /usr/bin/python3 -m pytest -q tests
+
+  e2e:
+    runs-on: ubuntu-24.04
+    needs: unit
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build worker image
+        run: docker build -t retrocloud/game-worker:ci game-worker
+      - name: Run worker container (non-root, read-only, no capabilities)
+        run: |
+          mkdir -p /tmp/rc-data && sudo chown 10001:10001 /tmp/rc-data
+          docker run -d --name worker --network host --read-only --tmpfs /tmp:size=256m,mode=1777 \
+            --cap-drop ALL --security-opt no-new-privileges -v /tmp/rc-data:/data \
+            -e RC_WORKER_TOKEN=ci-token-0123456789abcdef -e RC_STUN_URL= retrocloud/game-worker:ci
+          for i in $(seq 1 30); do curl -fs localhost:8080/health && break; sleep 1; done
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Playwright
+        run: npm i --no-save playwright@1.48.2 && npx playwright install --with-deps chromium
+      - name: End-to-end WebRTC tests
+        run: |
+          node game-worker/tests/e2e_stream.mjs http://127.0.0.1:8080 ci-token-0123456789abcdef 10
+          node game-worker/tests/e2e_isolation.mjs http://127.0.0.1:8080 ci-token-0123456789abcdef 10
+      - if: failure()
+        run: docker logs worker | tail -100
+
+  terraform:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform fmt -check -recursive infrastructure/terraform
+      - run: cd infrastructure/terraform/gcp && terraform init -backend=false && terraform validate
+      - run: cd infrastructure/terraform/azure && terraform init -backend=false && terraform validate
+
+  shell:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: shellcheck scripts/*.sh

@@ -1,0 +1,3 @@
+# Runtime deps come from Ubuntu packages (python3-gi, python3-aiohttp, python3-xlib) + pydantic.
+pydantic>=2.6,<3
+pytest>=8

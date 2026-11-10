@@ -1,0 +1,129 @@
+#cloud-config
+# RetroCloud worker host bootstrap (first boot). Template vars are filled by Terraform.
+package_update: true
+package_upgrade: false
+packages: [docker.io, docker-compose-v2, rsync, curl, jq, unattended-upgrades]
+
+fs_setup:
+  - label: rcdata
+    filesystem: ext4
+    device: /dev/disk/by-id/google-rcdata
+    overwrite: false
+mounts:
+  - [ /dev/disk/by-id/google-rcdata, /srv/retrocloud, ext4, "defaults,nofail,discard", "0", "2" ]
+
+write_files:
+  - path: /etc/ssh/sshd_config.d/10-retrocloud.conf
+    content: |
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      PermitRootLogin no
+  - path: /etc/docker/daemon.json
+    content: |
+      { "log-driver": "json-file", "log-opts": { "max-size": "10m", "max-file": "3" },
+        "live-restore": true }
+  - path: /usr/local/bin/rc-refresh-env
+    permissions: "0755"
+    content: |
+      #!/bin/bash
+      # Creates the secret env file once and refreshes IP-dependent values on every boot
+      # (the external IP is ephemeral to avoid paying for an idle static IP).
+      set -euo pipefail
+      ENV=/srv/retrocloud/env/worker.env
+      install -d -m 700 /srv/retrocloud/env
+      md() { curl -fsS -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/instance/$1"; }
+      PUB=$(md network-interfaces/0/access-configs/0/external-ip)
+      PRIV=$(md network-interfaces/0/ip)
+      if [ ! -f "$ENV" ]; then
+        umask 077
+        {
+          echo "RC_WORKER_TOKEN=$(openssl rand -hex 24)"
+          echo "RC_TURN_SECRET=$(openssl rand -hex 24)"
+          echo "RC_MAX_SESSIONS=2"
+          echo "RC_RTP_PORT_MIN=${rtp_port_min}"
+          echo "RC_RTP_PORT_MAX=${rtp_port_max}"
+        } > "$ENV"
+      fi
+      sed -i '/^RC_PUBLIC_IP=/d;/^RC_PRIVATE_IP=/d;/^RC_DOMAIN=/d' "$ENV"
+      printf 'RC_PUBLIC_IP=%s\nRC_PRIVATE_IP=%s\nRC_DOMAIN=%s.sslip.io\n' "$PUB" "$PRIV" "$${PUB//./-}" >> "$ENV"
+      chmod 600 "$ENV"
+  - path: /etc/systemd/system/retrocloud.service
+    content: |
+      [Unit]
+      Description=RetroCloud containers
+      After=docker.service network-online.target srv-retrocloud.mount
+      Requires=docker.service
+      [Service]
+      Type=oneshot
+      RemainAfterExit=yes
+      ExecStartPre=/usr/local/bin/rc-refresh-env
+      ExecStart=/bin/bash -c 'cd /srv/retrocloud/app/docker 2>/dev/null || exit 0; ln -sf /srv/retrocloud/env/worker.env .env; docker compose up -d'
+      ExecStop=/bin/bash -c 'cd /srv/retrocloud/app/docker 2>/dev/null && docker compose stop || true'
+      [Install]
+      WantedBy=multi-user.target
+  - path: /usr/local/bin/rc-idle-shutdown
+    permissions: "0755"
+    content: |
+      #!/bin/bash
+      # Powers the VM off (=> STOPPED, no vCPU/RAM charges) when nothing is being played.
+      # Disks are still billed while stopped. Skips while someone is logged in over SSH.
+      LIMIT=$(( ${idle_shutdown_minutes} * 60 ))
+      UP=$(cut -d. -f1 /proc/uptime)
+      [ "$UP" -lt "$LIMIT" ] && exit 0
+      [ "$(who | wc -l)" -gt 0 ] && exit 0
+      IDLE=$(curl -fsS -m 5 http://127.0.0.1:8080/health | jq -r '.idle_seconds' 2>/dev/null || echo "$UP")
+      if [ "$${IDLE:-0}" -ge "$LIMIT" ]; then
+        logger -t rc-idle-shutdown "idle for $${IDLE}s >= $${LIMIT}s, powering off"
+        systemctl poweroff
+      fi
+  - path: /etc/systemd/system/rc-idle-shutdown.service
+    content: |
+      [Unit]
+      Description=RetroCloud idle shutdown check
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/local/bin/rc-idle-shutdown
+  - path: /etc/systemd/system/rc-idle-shutdown.timer
+    content: |
+      [Unit]
+      Description=RetroCloud idle shutdown check every 5 minutes
+      [Timer]
+      OnBootSec=10min
+      OnUnitActiveSec=5min
+      [Install]
+      WantedBy=timers.target
+  - path: /etc/google-cloud-ops-agent/config.yaml
+    content: |
+      logging:
+        receivers:
+          docker:
+            type: files
+            include_paths: [/var/lib/docker/containers/*/*.log]
+            record_log_file_path: true
+        processors:
+          docker_json:
+            type: parse_json
+        service:
+          pipelines:
+            docker:
+              receivers: [docker]
+              processors: [docker_json]
+      metrics:
+        service:
+          pipelines:
+            default_pipeline:
+              receivers: [hostmetrics]
+
+runcmd:
+  - [ bash, -c, "mkdir -p /srv/retrocloud/app /srv/retrocloud/roms /srv/retrocloud/sessions /srv/retrocloud/caddy /srv/retrocloud/env" ]
+  - [ chown, "10001:10001", /srv/retrocloud/sessions ]
+  - [ chown, "${ssh_user}:${ssh_user}", /srv/retrocloud/app, /srv/retrocloud/roms ]
+  - [ usermod, -aG, docker, "${ssh_user}" ]
+  - [ systemctl, restart, ssh ]
+  - [ systemctl, restart, docker ]
+  - [ systemctl, daemon-reload ]
+  - [ systemctl, enable, --now, rc-idle-shutdown.timer ]
+  - [ systemctl, enable, retrocloud.service ]
+  - [ /usr/local/bin/rc-refresh-env ]
+  - [ bash, -c, "curl -fsSL https://dl.google.com/cloudagents/add-google-cloud-ops-agent-repo.sh | bash -s -- --also-install || logger -t cloud-init 'ops agent install failed'" ]
+  - [ touch, /var/lib/retrocloud-bootstrap-done ]

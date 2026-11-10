@@ -1,0 +1,69 @@
+# RetroCloud single-VM deployment (Phase 1).
+# Host networking: WebRTC needs a UDP port range (RC_RTP_PORT_MIN..MAX); publishing 100 UDP
+# ports through docker-proxy adds latency and CPU. The VM runs nothing else, the GCP firewall
+# is the real perimeter, and the worker itself only listens on 127.0.0.1 (Caddy fronts it).
+name: retrocloud
+
+x-logging: &logging
+  driver: json-file
+  options: { max-size: "10m", max-file: "3" }
+
+services:
+  worker:
+    image: retrocloud/game-worker:${RC_IMAGE_TAG:-dev}
+    build: ../game-worker
+    network_mode: host
+    restart: unless-stopped
+    env_file: .env                 # created on the VM by cloud-init, never committed
+    environment:
+      RC_BIND: 127.0.0.1
+      RC_ROMS_DIR: /roms
+      RC_GAMES_FILE: /roms/games.json
+    volumes:
+      - ${RC_DATA_ROOT:-/srv/retrocloud}/sessions:/data
+      - ${RC_DATA_ROOT:-/srv/retrocloud}/roms:/roms:ro
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+    read_only: true
+    user: "10001:10001"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    # 2 sessions x ~0.75 vCPU measured in Phase 0 + headroom. Tune per machine type.
+    cpus: ${RC_WORKER_CPUS:-3.5}
+    mem_limit: ${RC_WORKER_MEM:-6g}
+    pids_limit: 512
+    logging: *logging
+
+  caddy:
+    image: caddy:2.8.4
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      RC_DOMAIN: ${RC_DOMAIN:?set RC_DOMAIN, e.g. 34-1-2-3.sslip.io}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${RC_DATA_ROOT:-/srv/retrocloud}/caddy:/data
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: [no-new-privileges:true]
+    logging: *logging
+
+  # Optional TURN relay for players behind symmetric NAT (mobile networks, some corporate Wi-Fi).
+  # Enable with: docker compose --profile turn up -d   (and set RC_TURN_HOST in .env)
+  # NOT tested in Phase 0 - see docs/feasibility.md.
+  coturn:
+    image: coturn/coturn:4.6.2
+    profiles: [turn]
+    network_mode: host
+    restart: unless-stopped
+    command: >
+      -n --log-file=stdout --no-cli --no-tls --no-dtls --fingerprint
+      --listening-port=3478 --min-port=49160 --max-port=49200
+      --use-auth-secret --static-auth-secret=${RC_TURN_SECRET:-} --realm=retrocloud
+      --external-ip=${RC_PUBLIC_IP:-}/${RC_PRIVATE_IP:-}
+      --no-multicast-peers --denied-peer-ip=0.0.0.0-0.255.255.255
+      --denied-peer-ip=10.0.0.0-10.255.255.255 --denied-peer-ip=172.16.0.0-172.31.255.255
+      --denied-peer-ip=192.168.0.0-192.168.255.255 --denied-peer-ip=169.254.0.0-169.254.255.255
+      --allowed-peer-ip=${RC_PRIVATE_IP:-127.0.0.1}
+      --user-quota=4 --total-quota=20
+    logging: *logging

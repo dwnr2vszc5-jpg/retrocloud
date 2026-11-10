@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+docker/.env
+*.o
+# ROMs: only commit content you are allowed to redistribute (see README "Oyun lisansları")
+game-worker/roms/**
+!game-worker/roms/testpad/
+!game-worker/roms/testpad/**

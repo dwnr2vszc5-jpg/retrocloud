@@ -1,0 +1,11 @@
+project_id          = "retrocloud-mvp-123456"
+region              = "europe-west3"
+zone                = "europe-west3-a"
+machine_type        = "e2-standard-4"
+spot                = false
+max_run_hours       = 4
+admin_cidrs         = ["203.0.113.10/32"] # your public IP: curl -4 ifconfig.me
+player_cidrs        = ["0.0.0.0/0"]
+ssh_public_key_path = "~/.ssh/id_ed25519.pub"
+billing_account_id  = "" # e.g. "01ABCD-234567-89EFGH" to create the budget alert with Terraform
+budget_amount       = 25

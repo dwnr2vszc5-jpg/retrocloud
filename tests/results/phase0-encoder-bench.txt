@@ -1,0 +1,12 @@
+content resolution preset    bitrate   encoder CPU (1 vCPU = 100%)
+snow   1280x720  ultrafast   3000 kbps  CPU  30.2%
+snow   1280x720  superfast   3000 kbps  CPU  42.6%
+snow   1280x720  veryfast    3000 kbps  CPU  60.5%
+snow   960x540   ultrafast   3000 kbps  CPU  20.3%
+snow   960x540   superfast   3000 kbps  CPU  31.7%
+snow   960x540   veryfast    3000 kbps  CPU  41.3%
+snow   854x480   ultrafast   3000 kbps  CPU  17.4%
+snow   854x480   superfast   3000 kbps  CPU  26.1%
+snow   854x480   veryfast    3000 kbps  CPU  33.3%
+ball   1280x720  ultrafast   3000 kbps  CPU  21.8%
+smpte  1280x720  ultrafast   3000 kbps  CPU  14.2%
