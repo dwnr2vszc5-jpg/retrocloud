@@ -1,0 +1,110 @@
+{
+  "checks": {
+    "webrtc_connected": {
+      "ok": true
+    },
+    "video_received": {
+      "ok": true,
+      "detail": "1280x720 video/H264"
+    },
+    "h264": {
+      "ok": true,
+      "detail": "video/H264"
+    },
+    "audio_received": {
+      "ok": true,
+      "detail": "2 kbps audio/OPUS"
+    },
+    "audio_tone_on_A": {
+      "ok": true,
+      "detail": {
+        "rms_silent": 0,
+        "rms_tone": 0.1276
+      }
+    },
+    "keyboard_input": {
+      "ok": true,
+      "detail": {
+        "before": 159.5,
+        "after": 218.5,
+        "first_move_ms": 224.30000007152557
+      }
+    },
+    "gamepad_input": {
+      "ok": true,
+      "detail": {
+        "before": 218.5,
+        "after": 159.5,
+        "first_move_ms": 313.90000009536743
+      }
+    },
+    "latency_measured": {
+      "ok": true,
+      "detail": {
+        "samples": [
+          167,
+          175,
+          178,
+          236,
+          240,
+          254,
+          270,
+          271,
+          285,
+          305
+        ],
+        "median": 254,
+        "max": 305
+      }
+    },
+    "reconnect": {
+      "ok": true,
+      "detail": {
+        "reconnect_ms": 4216,
+        "before_y": 90.5,
+        "after_y": 120.6140350877193
+      }
+    }
+  },
+  "input_to_video_ms": {
+    "samples": [
+      167,
+      175,
+      178,
+      236,
+      240,
+      254,
+      270,
+      271,
+      285,
+      305
+    ],
+    "median": 254,
+    "max": 305
+  },
+  "summary": {
+    "client_fps_avg": 30,
+    "client_video_kbps_avg": 3013.1,
+    "client_audio_kbps_avg": 2.1,
+    "client_rtt_ms_avg": 80.2,
+    "client_input_rtt_ms_avg": 85,
+    "client_decode_ms_avg": 2.4,
+    "client_jitter_buffer_ms_avg": 10.3,
+    "packets_lost_last": 0,
+    "frames_dropped_last": 0,
+    "server_encoded_fps_avg": 29.7,
+    "server_video_kbps_avg": 2973.4,
+    "retroarch_cpu_pct_avg": 60.6,
+    "xvfb_cpu_pct_avg": 10.6,
+    "pulse_cpu_pct_avg": 3.8,
+    "retroarch_rss_mb": 179.1,
+    "host": {
+      "cpus": 4,
+      "load1": 1.91,
+      "load5": 1.04,
+      "mem_total_mb": 15986,
+      "mem_available_mb": 14992
+    }
+  },
+  "passed": true
+}
