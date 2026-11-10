@@ -125,5 +125,5 @@ runcmd:
   - [ systemctl, enable, --now, rc-idle-shutdown.timer ]
   - [ systemctl, enable, retrocloud.service ]
   - [ /usr/local/bin/rc-refresh-env ]
-  - [ bash, -c, "curl -fsSL https://dl.google.com/cloudagents/add-google-cloud-ops-agent-repo.sh | bash -s -- --also-install || logger -t cloud-init 'ops agent install failed'" ]
+  - [ bash, -c, "echo 'Dpkg::Options { \"--force-confold\"; };' > /etc/apt/apt.conf.d/99rc-confold; export DEBIAN_FRONTEND=noninteractive; curl -fsSL https://dl.google.com/cloudagents/add-google-cloud-ops-agent-repo.sh | bash -s -- --also-install || logger -t cloud-init 'ops agent install failed'" ]
   - [ touch, /var/lib/retrocloud-bootstrap-done ]
