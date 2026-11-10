@@ -49,7 +49,7 @@ class Settings:
     stun_url: str = os.environ.get("RC_STUN_URL", "stun://stun.l.google.com:19302")
     turn_host: str = os.environ.get("RC_TURN_HOST", "")  # e.g. "34.1.2.3:3478"
     turn_secret: str = os.environ.get("RC_TURN_SECRET", "")
-    public_ip: str = os.environ.get("RC_PUBLIC_IP", "")  # 1:1 NAT address (GCE external IP)
+    public_ip: str = os.environ.get("RC_PUBLIC_IP", "")  # address(es) to advertise, comma-separated: GCE external IP, or LAN IP,Tailscale IP
     rtp_port_min: int = _int("RC_RTP_PORT_MIN", 50000)
     rtp_port_max: int = _int("RC_RTP_PORT_MAX", 50100)
     video: VideoSettings = field(default_factory=VideoSettings)

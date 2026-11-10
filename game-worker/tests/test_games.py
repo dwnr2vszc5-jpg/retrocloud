@@ -138,3 +138,13 @@ def test_handheld_style_folder_names_are_recognised(tmp_path: Path) -> None:
         by_sys.setdefault(g.system, []).append(g.rom)
     assert sorted(by_sys["md"]) == ["genesis/Game B.gen", "megadrive/Game A.md"]
     assert by_sys["sms"] == ["mastersystem/C.sms"] and by_sys["arcade"] == ["fbneo/d.zip"]
+
+
+def test_public_ips_parsing() -> None:
+    import importlib.util
+    if importlib.util.find_spec("gi") is None:
+        pytest.skip("GStreamer bindings not installed")
+    from worker.stream import public_ips
+    assert public_ips("34.1.2.3") == ["34.1.2.3"]
+    assert public_ips(" 192.168.0.15, 100.64.0.7 ,bad,300.1.1.1,192.168.0.15") == ["192.168.0.15", "100.64.0.7"]
+    assert public_ips("") == []

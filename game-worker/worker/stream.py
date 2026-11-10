@@ -69,6 +69,16 @@ def init_gstreamer() -> None:
     threading.Thread(target=_glib_loop.run, name="glib-main", daemon=True).start()
 
 
+def public_ips(value: str) -> list[str]:
+    """'34.1.2.3' or '192.168.0.15,100.64.0.7' -> list of IPv4 addresses (invalid entries dropped)."""
+    out = []
+    for ip in (x.strip() for x in value.split(",")):
+        p = ip.split(".")
+        if len(p) == 4 and all(x.isdigit() and int(x) < 256 for x in p) and ip not in out:
+            out.append(ip)
+    return out
+
+
 def turn_credentials(secret: str, session_id: str, ttl: int = 6 * 3600) -> tuple[str, str]:
     """coturn 'use-auth-secret' (TURN REST API) credentials: short-lived, per session."""
     username = f"{int(time.time()) + ttl}:{session_id}"
@@ -197,11 +207,15 @@ class StreamPeer:
         # GCE gives the VM only a private address behind 1:1 NAT. Advertising the same
         # host candidate with the public IP saves a STUN round trip and works even if
         # outbound STUN is blocked.
+        # RC_PUBLIC_IP may list several addresses (e.g. LAN IP + Tailscale IP when the worker
+        # runs in Docker Desktop on a Mac); each gets its own copy of the host candidate.
         if self.s.public_ip and " typ host" in candidate and " udp " in candidate.lower():
             parts = candidate.split()
-            if len(parts) > 5 and parts[4] != self.s.public_ip and ":" not in parts[4]:
-                parts[4] = self.s.public_ip
-                self.send({"type": "ice", "candidate": " ".join(parts), "sdpMLineIndex": mline})
+            if len(parts) > 5 and ":" not in parts[4]:
+                for ip in public_ips(self.s.public_ip):
+                    if ip != parts[4]:
+                        self.send({"type": "ice", "candidate": " ".join([*parts[:4], ip, *parts[5:]]),
+                                   "sdpMLineIndex": mline})
 
     def _on_ice_state(self, el: Any, _pspec: Any) -> None:
         state = el.get_property("ice-connection-state")
