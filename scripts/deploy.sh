@@ -26,7 +26,7 @@ rsync -az --include '*/' --include '*.nes' --include '*.sfc' --include '*.gb' --
   "$ROOT/game-worker/roms/" "$HOST:/srv/retrocloud/roms/"
 
 echo "==> building and starting containers"
-"${SSH[@]}" 'cd /srv/retrocloud/app/docker && ln -sf /srv/retrocloud/env/worker.env .env && docker compose build --pull worker && sudo systemctl restart retrocloud.service && docker compose ps'
+"${SSH[@]}" 'cd /srv/retrocloud/app/docker && ln -sf /srv/retrocloud/env/worker.env .env && sudo docker compose build --pull worker && sudo systemctl restart retrocloud.service && docker compose ps'
 
 echo "==> health"
 "${SSH[@]}" 'curl -fsS http://127.0.0.1:8080/health; echo'
