@@ -15,7 +15,7 @@
     "core": "gambatte_libretro.so",
     "rom": "homebrew/libbet.gb",
     "license": "zlib - Damian Yerrick (pinobatch), https://github.com/pinobatch/libbet",
-    "notes": "Puzzle-platformer. Fetch with scripts/fetch_homebrew.sh (not committed)."
+    "notes": "Puzzle-platformer."
   },
   {
     "id": "croom",
@@ -24,7 +24,7 @@
     "core": "nestopia_libretro.so",
     "rom": "homebrew/croom.nes",
     "license": "GPL-3.0 - Damian Yerrick (pinobatch), https://github.com/pinobatch/croom-nes",
-    "notes": "Memory card game, 1-2 players. Fetch with scripts/fetch_homebrew.sh (not committed)."
+    "notes": "Memory card game, 1-2 players."
   },
   {
     "id": "gba240p",
@@ -33,6 +33,51 @@
     "core": "mgba_libretro.so",
     "rom": "homebrew/gba240p.gba",
     "license": "GPL-2.0 - Damian Yerrick (pinobatch), https://github.com/pinobatch/240p-test-mini",
-    "notes": "Video test patterns and menus; checks the GBA core. Fetch with scripts/fetch_homebrew.sh (not committed)."
+    "notes": "Video test patterns and menus; checks the GBA core."
+  },
+  {
+    "id": "thwaite",
+    "title": "Thwaite",
+    "system": "nes",
+    "core": "nestopia_libretro.so",
+    "rom": "homebrew/thwaite.nes",
+    "license": "GPL-3.0 - Damian Yerrick (pinobatch), https://github.com/pinobatch/thwaite-nes",
+    "notes": "Defend the town from incoming missiles. 1-2 players."
+  },
+  {
+    "id": "nova",
+    "title": "Nova the Squirrel",
+    "system": "nes",
+    "core": "nestopia_libretro.so",
+    "rom": "homebrew/nova.nes",
+    "license": "GPL-3.0 - NovaSquirrel, https://github.com/NovaSquirrel/NovaTheSquirrel",
+    "notes": "Action platformer."
+  },
+  {
+    "id": "ucity",
+    "title": "µCity",
+    "system": "gbc",
+    "core": "gambatte_libretro.so",
+    "rom": "homebrew/ucity.gbc",
+    "license": "GPL-3.0+ - Antonio Niño Díaz, https://github.com/AntonioND/ucity",
+    "notes": "City-building simulation."
+  },
+  {
+    "id": "ucity-advance",
+    "title": "µCity Advance",
+    "system": "gba",
+    "core": "mgba_libretro.so",
+    "rom": "homebrew/ucity-advance.gba",
+    "license": "Code GPL-3.0, music/SFX CC-BY-NC-SA-4.0 / Mod Archive - Antonio Niño Díaz, https://github.com/AntonioND/ucity-advance",
+    "notes": "City-building simulation. Non-commercial use only (assets)."
+  },
+  {
+    "id": "miniplanets",
+    "title": "Miniplanets",
+    "system": "md",
+    "core": "genesis_plus_gx_libretro.so",
+    "rom": "homebrew/miniplanets.bin",
+    "license": "zlib - Javier Degirolmo (sikthehedgehog), https://github.com/sikthehedgehog/miniplanets",
+    "notes": "Platformer on tiny round planets (REMIX Ver. REV04)."
   }
 ]
