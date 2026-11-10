@@ -2,64 +2,349 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RetroCloud Worker</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101218">
+<title>RetroCloud</title>
 <style>
-  :root { --bg:#0b0d12; --card:#151924; --fg:#e8ecf3; --muted:#8b93a7; --accent:#5b8cff; }
-  body { margin:0; background:var(--bg); color:var(--fg); font:15px system-ui,sans-serif; }
-  main { max-width:760px; margin:0 auto; padding:24px 16px; }
-  h1 { font-size:22px; margin:0 0 4px; } p.sub { color:var(--muted); margin:0 0 20px; }
-  .card { background:var(--card); border-radius:10px; padding:14px 16px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; gap:12px; }
-  .card small { color:var(--muted); display:block; }
-  input { width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#0f121a; color:var(--fg); }
-  button { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:9px 14px; cursor:pointer; white-space:nowrap; }
-  button.ghost { background:transparent; border:1px solid #444; }
-  #msg { color:#ff8a8a; min-height:20px; }
+  /* Handheld-frontend look: a system carousel screen, then a game list screen (A = enter, B = back). */
+  :root {
+    --bg:#101218; --fg:#f1f3f8; --muted:#9097a9; --line:#272c3a; --sel:#ffffff; --selfg:#101218;
+    --c:#9aa3b5;
+    --nintendo:#e4002b; --sega:#1f6bff; --sony:#6e5cf0; --nec:#f07f1a; --snk:#d9a400; --atari:#c8102e; --bandai:#14a39a; --various:#7d8799;
+  }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--fg);
+              font:16px/1.3 "Trebuchet MS","Segoe UI",system-ui,sans-serif; -webkit-tap-highlight-color:transparent; }
+  body { overflow:hidden; user-select:none; }
+  button { font:inherit; color:inherit; background:none; border:0; padding:0; cursor:pointer; }
+  .screen { position:fixed; inset:0; display:none; flex-direction:column;
+            padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left); }
+  .screen.on { display:flex; }
+
+  /* top status bar */
+  .topbar { display:flex; align-items:center; gap:14px; padding:10px 18px; font-size:13px; color:var(--muted); }
+  .topbar .sp { flex:1; }
+  .topbar .pad.on { color:#7ee2a8; }
+
+  /* help bar */
+  .help { display:flex; justify-content:center; flex-wrap:wrap; gap:6px 20px; padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+          background:rgba(0,0,0,.35); font-size:13px; color:#cfd3dd; letter-spacing:.03em; }
+  .help b { display:inline-grid; place-items:center; min-width:22px; height:22px; padding:0 6px; margin-right:6px; border-radius:11px;
+            background:#e9ebf0; color:#14161c; font-size:11px; }
+  .help button { display:inline-flex; align-items:center; }
+
+  /* ---------- system view ---------- */
+  #sysview { background:radial-gradient(120% 80% at 50% 45%, color-mix(in srgb, var(--c) 38%, var(--bg)) 0%, var(--bg) 70%); transition:background .25s; }
+  #carousel { flex:1; position:relative; overflow:hidden; touch-action:pan-y; }
+  .slot { position:absolute; top:50%; left:50%; width:min(70vw,520px); transform-origin:center;
+          text-align:center; transition:transform .22s ease, opacity .22s ease; will-change:transform; }
+  .slot .logo { font-weight:900; font-style:italic; letter-spacing:-.02em; line-height:.95; font-size:clamp(46px,12vw,120px);
+                text-shadow:0 6px 24px rgba(0,0,0,.45); }
+  .slot .name { margin-top:10px; font-size:clamp(14px,2.6vw,20px); color:#e6e8ef; }
+  .slot .count { margin-top:6px; font-size:14px; color:var(--muted); letter-spacing:.06em; }
+  .slot.empty .logo { opacity:.35; }
+  #sysbar { text-align:center; padding:0 0 10px; font-size:13px; color:var(--muted); letter-spacing:.12em; }
+  #dots { display:flex; justify-content:center; gap:6px; padding-bottom:14px; }
+  #dots i { width:7px; height:7px; border-radius:50%; background:#3a4052; }
+  #dots i.on { background:#fff; width:18px; border-radius:4px; }
+  #sessbar { text-align:center; font-size:13px; color:#ffd27a; min-height:18px; padding-bottom:6px; }
+  #sessbar button { text-decoration:underline; color:#ffd27a; }
+
+  /* ---------- game list view ---------- */
+  #listview { background:linear-gradient(180deg, color-mix(in srgb, var(--c) 30%, var(--bg)) 0%, var(--bg) 42%); }
+  .lhead { display:flex; align-items:flex-end; gap:16px; padding:6px 22px 12px; }
+  .lhead .logo { font-weight:900; font-style:italic; font-size:clamp(30px,6vw,52px); line-height:1; }
+  .lhead .meta { color:var(--muted); font-size:13px; padding-bottom:6px; }
+  .lbody { flex:1; min-height:0; display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1fr); gap:20px; padding:0 22px 12px; }
+  #games { margin:0; padding:0; list-style:none; overflow-y:auto; scrollbar-width:thin; }
+  #games li { padding:9px 14px; border-radius:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:17px; color:#dfe2ea; }
+  #games li.sel { background:var(--sel); color:var(--selfg); font-weight:700; }
+  #games li.off { opacity:.4; }
+  .info { background:rgba(0,0,0,.28); border:1px solid var(--line); border-radius:12px; padding:18px; overflow-y:auto; }
+  .info .title { font-size:22px; font-weight:800; margin-bottom:12px; word-break:break-word; }
+  .info dl { display:grid; grid-template-columns:auto 1fr; gap:6px 12px; margin:0; font-size:14px; }
+  .info dt { color:var(--muted); } .info dd { margin:0; word-break:break-word; }
+  .info .play { margin-top:18px; width:100%; padding:13px; border-radius:10px; background:var(--c); color:#fff; font-weight:800; letter-spacing:.06em; }
+  .info .play:disabled { opacity:.4; }
+  .emptybox { color:#c9cdd8; line-height:1.6; font-size:15px; }
+  .emptybox code { background:rgba(255,255,255,.1); padding:1px 6px; border-radius:5px; }
+
+  #toast { position:fixed; left:50%; bottom:70px; transform:translateX(-50%); background:#2b1218; border:1px solid #6b2433; color:#ffd9de;
+           padding:10px 16px; border-radius:10px; max-width:90vw; display:none; z-index:20; font-size:14px; }
+  #toast.on { display:block; }
+  #loading { position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.6); z-index:15; font-size:18px; letter-spacing:.1em; }
+  #loading.on { display:grid; }
+
+  /* login */
+  #login { justify-content:center; align-items:center; padding:16px; background:radial-gradient(90% 70% at 50% 40%, #252a3a, var(--bg)); }
+  #login form { width:min(380px,100%); text-align:center; }
+  #login .logo { font-size:44px; font-weight:900; font-style:italic; margin-bottom:6px; }
+  #login p { color:var(--muted); font-size:14px; margin:0 0 18px; }
+  #login input { width:100%; padding:13px; border-radius:10px; border:1px solid #3a4052; background:#0c0e13; color:var(--fg); font:inherit; text-align:center; }
+  #login .go { margin-top:12px; width:100%; padding:13px; border-radius:10px; background:#fff; color:#111; font-weight:800; }
+
+  @media (max-width:720px) {
+    .lbody { grid-template-columns:1fr; }
+    .info { display:none; }
+    #games li { font-size:16px; padding:11px 12px; }
+    .help { font-size:12px; gap:6px 14px; }
+  }
 </style>
 </head>
 <body>
-<main>
-  <h1>RetroCloud worker</h1>
-  <p class="sub">Phase 1 geliştirici başlatıcısı. Phase 3'te bu sayfanın yerini kontrol paneli alacak.</p>
-  <label>Worker token<input id="tok" type="password" autocomplete="off" placeholder="RC_WORKER_TOKEN"></label>
-  <p id="msg"></p>
-  <h3>Oyunlar</h3><div id="games"></div>
-  <h3>Aktif oturumlar</h3><div id="sessions"></div>
-</main>
+
+<!-- ============ system select ============ -->
+<section class="screen" id="sysview" aria-label="Sistemler">
+  <div class="topbar"><span>RETROCLOUD</span><span class="sp"></span><span class="pad">🎮 —</span><span class="clock"></span></div>
+  <div id="carousel"></div>
+  <div id="sessbar"></div>
+  <div id="sysbar"></div>
+  <div id="dots"></div>
+  <div class="help">
+    <button data-act="left"><b>◀▶</b>SİSTEM</button>
+    <button data-act="a"><b>A</b>SEÇ</button>
+    <button data-act="logout"><b>⎋</b>ÇIKIŞ</button>
+  </div>
+</section>
+
+<!-- ============ game list ============ -->
+<section class="screen" id="listview" aria-label="Oyunlar">
+  <div class="topbar"><span>RETROCLOUD</span><span class="sp"></span><span class="pad">🎮 —</span><span class="clock"></span></div>
+  <div class="lhead"><div class="logo" id="lsys"></div><div class="meta" id="lmeta"></div></div>
+  <div class="lbody">
+    <ul id="games" role="listbox"></ul>
+    <div class="info" id="info"></div>
+  </div>
+  <div class="help">
+    <button data-act="up"><b>▲▼</b>OYUN</button>
+    <button data-act="l"><b>L R</b>SAYFA</button>
+    <button data-act="a"><b>A</b>OYNA</button>
+    <button data-act="b"><b>B</b>GERİ</button>
+  </div>
+</section>
+
+<!-- ============ login ============ -->
+<section class="screen" id="login">
+  <form>
+    <div class="logo">RETROCLOUD</div>
+    <p>Sunucunun worker token'ını gir.<br>Sadece bu sekmede saklanır.</p>
+    <input id="tok" type="password" autocomplete="current-password" placeholder="token" required>
+    <button class="go" type="submit">BAŞLA</button>
+  </form>
+</section>
+
+<div id="toast" role="alert"></div>
+<div id="loading">OYUN AÇILIYOR…</div>
+
 <script>
 "use strict";
-const tok = document.getElementById("tok"), msg = document.getElementById("msg");
-try { tok.value = sessionStorage.getItem("rc_tok") || ""; } catch {}
-tok.onchange = () => { try { sessionStorage.setItem("rc_tok", tok.value); } catch {} refresh(); };
-const api = async (method, path, body) => {
-  const r = await fetch(path, { method, headers: { "Authorization": "Bearer " + tok.value, "Content-Type": "application/json" },
-    body: body ? JSON.stringify(body) : undefined });
-  const j = await r.json(); if (!r.ok) throw new Error(j.error || r.status); return j;
-};
-const el = (html) => { const d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstChild; };
+const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-async function refresh() {
-  msg.textContent = "";
-  if (!tok.value) return;
-  try {
-    const games = await api("GET", "/api/games"), g = document.getElementById("games"); g.replaceChildren();
-    for (const x of games) {
-      const c = el(`<div class="card"><div>${esc(x.title)}<small>${esc(x.system)} · ${esc(x.license)}</small></div><button ${x.available ? "" : "disabled"}>Başlat</button></div>`);
-      c.querySelector("button").onclick = async () => {
-        try { const s = await api("POST", "/api/sessions", { game_id: x.id, owner: "dev" }); window.open(s.play_path + "&stats=1", "_blank"); refresh(); }
-        catch (e) { msg.textContent = e.message; }
-      };
-      g.append(c);
-    }
-    const sessions = await api("GET", "/api/sessions"), s = document.getElementById("sessions"); s.replaceChildren();
-    for (const x of sessions) {
-      const c = el(`<div class="card"><div>${esc(x.game_title)}<small>${esc(x.id)} · ${esc(x.state)} · izleyici: ${x.viewer_connected ? "var" : "yok"}</small></div><button class="ghost">Durdur</button></div>`);
-      c.querySelector("button").onclick = async () => { await api("DELETE", "/api/sessions/" + x.id); refresh(); };
-      s.append(c);
-    }
-  } catch (e) { msg.textContent = e.message; }
+const MAKER = { nintendo:"--nintendo", sega:"--sega", sony:"--sony", nec:"--nec", snk:"--snk", atari:"--atari", bandai:"--bandai" };
+const HINT = { psx:".chd (önerilir), .cue + .bin, .pbp; çok diskli oyunlar için .m3u",
+               arcade:"FinalBurn Neo romset'i (.zip), dosya adını değiştirme",
+               neogeo:"FinalBurn Neo romset'i (.zip) + roms/bios/neogeo.zip",
+               segacd:".chd ya da .cue + roms/bios/bios_CD_E.bin (veya _U/_J)" };
+
+let token = ""; try { token = sessionStorage.getItem("rc_tok") || ""; } catch {}
+let systems = [], games = [], view = "login", si = 0, gi = 0;
+const saved = (() => { try { return JSON.parse(localStorage.getItem("rc_sel") || "{}"); } catch { return {}; } })();
+
+function toast(t) { const m = $("toast"); m.textContent = t; m.classList.add("on"); clearTimeout(toast.h); toast.h = setTimeout(() => m.classList.remove("on"), 4000); }
+async function api(method, path, body) {
+  const r = await fetch(path, { method, headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
+                                body: body ? JSON.stringify(body) : undefined });
+  let j = null; try { j = await r.json(); } catch {}
+  if (r.status === 401 || r.status === 403) { show("login"); throw new Error("Token geçersiz"); }
+  if (!r.ok) throw new Error((j && j.error) || ("HTTP " + r.status));
+  return j;
 }
-refresh();
+function show(v) {
+  view = v;
+  for (const id of ["sysview", "listview", "login"]) $(id).classList.toggle("on", id === v);
+  if (v === "login") setTimeout(() => $("tok").focus(), 50);
+}
+const colorOf = (s) => `var(${MAKER[(s?.maker || "").toLowerCase()] || "--various"})`;
+const gamesOf = (s) => s ? games.filter((g) => g.system === s.id).sort((a, b) => a.title.localeCompare(b.title, "tr")) : [];
+function remember() { try { localStorage.setItem("rc_sel", JSON.stringify({ sys: systems[si]?.id, game: gamesOf(systems[si])[gi]?.id })); } catch {} }
+
+$("login").querySelector("form").onsubmit = (e) => {
+  e.preventDefault(); token = $("tok").value.trim();
+  try { sessionStorage.setItem("rc_tok", token); } catch {}
+  load();
+};
+
+async function load() {
+  if (!token) return show("login");
+  try {
+    const [sy, ga] = await Promise.all([api("GET", "/api/systems"), api("GET", "/api/games")]);
+    games = ga;
+    systems = [...sy.filter((s) => s.games > 0), ...sy.filter((s) => s.games === 0)];
+    for (const g of games) if (!systems.some((s) => s.id === g.system))
+      systems.unshift({ id: g.system, short: g.system.toUpperCase(), name: g.system_name || g.system, maker: "", year: 0, games: 1, extensions: [], core_installed: true, missing_bios: [] });
+    const w = systems.findIndex((s) => s.id === saved.sys); si = w >= 0 ? w : 0;
+    const wg = gamesOf(systems[si]).findIndex((g) => g.id === saved.game); gi = wg >= 0 ? wg : 0;
+    if (view === "login") show("sysview");
+    renderSystems(); if (view === "listview") renderList();
+    refreshSessions();
+  } catch (e) { toast(e.message); }
+}
+
+// ---------- system carousel ----------
+function renderSystems() {
+  const car = $("carousel"); car.replaceChildren();
+  const n = systems.length; if (!n) return;
+  const s = systems[si];
+  document.documentElement.style.setProperty("--c", colorOf(s));
+  const seen = new Set();
+  for (const off of [0, -1, 1, -2, 2]) {
+    const idx0 = ((si + off) % n + n) % n; if (seen.has(idx0)) continue; seen.add(idx0);
+    const idx = ((si + off) % n + n) % n, x = systems[idx];
+    const el = document.createElement("div");
+    el.className = "slot" + (x.games ? "" : " empty");
+    const scale = off === 0 ? 1 : 0.42, dx = off * Math.min(innerWidth * 0.36, 360);
+    el.style.transform = `translate(calc(-50% + ${dx}px), -50%) scale(${scale})`;
+    el.style.opacity = off === 0 ? 1 : 0.35;
+    el.style.color = off === 0 ? "#fff" : "#d0d4de";
+    el.innerHTML = `<div class="logo">${esc(x.short)}</div>` + (off === 0
+      ? `<div class="name">${esc(x.name)}</div><div class="count">${x.games} oyun${x.year ? " · " + esc(x.maker) + " " + x.year : ""}</div>` : "");
+    el.onclick = () => off === 0 ? enterList() : moveSystem(off);
+    car.append(el);
+  }
+  $("sysbar").textContent = s.core_installed ? "" : "EMÜLATÖR KURULU DEĞİL";
+  const dots = $("dots"); dots.replaceChildren();
+  systems.forEach((_, i) => { const d = document.createElement("i"); if (i === si) d.className = "on"; dots.append(d); });
+}
+function moveSystem(d) { if (!systems.length) return; si = ((si + d) % systems.length + systems.length) % systems.length; gi = 0; renderSystems(); remember(); }
+function enterList() { if (!systems.length) return; show("listview"); renderList(); }
+
+// ---------- game list ----------
+function renderList() {
+  const s = systems[si], list = gamesOf(s), ul = $("games");
+  document.documentElement.style.setProperty("--c", colorOf(s));
+  $("lsys").textContent = s.short;
+  $("lmeta").textContent = `${s.name} · ${list.length} oyun`;
+  ul.replaceChildren();
+  if (!list.length) {
+    const li = document.createElement("li"); li.style.whiteSpace = "normal";
+    li.innerHTML = `<div class="emptybox">Bu sistemde oyun yok.<br>Sahip olduğun oyunların yedeklerini sunucuda
+      <code>roms/${esc(s.id)}/</code> klasörüne koy.<br>Dosya türleri: ${esc(HINT[s.id] || s.extensions.map((e) => "." + e).join(" "))}
+      ${s.missing_bios.length ? `<br>Gerekli BIOS: <code>roms/bios/${esc(s.missing_bios[0])}</code>` : ""}</div>`;
+    ul.append(li); $("info").innerHTML = ""; return;
+  }
+  gi = Math.max(0, Math.min(gi, list.length - 1));
+  list.forEach((g, i) => {
+    const li = document.createElement("li");
+    li.className = (i === gi ? "sel" : "") + (g.available ? "" : " off");
+    li.textContent = g.title;
+    li.onclick = () => { if (gi === i) launch(); else { gi = i; renderList(); remember(); } };
+    ul.append(li);
+  });
+  ul.children[gi].scrollIntoView({ block: "nearest" });
+  const g = list[gi];
+  $("info").innerHTML = `<div class="title">${esc(g.title)}</div>
+    <dl><dt>Sistem</dt><dd>${esc(g.system_name)}</dd><dt>Dosya</dt><dd>${esc(g.rom.split("/").pop())}</dd>
+    <dt>Kaynak</dt><dd>${g.license === "user-provided" ? "kendi kopyan" : esc(g.license)}</dd>
+    ${g.notes ? `<dt>Not</dt><dd>${esc(g.notes)}</dd>` : ""}</dl>
+    <button class="play" ${g.available ? "" : "disabled"}>▶ OYNA</button>`;
+  $("info").querySelector(".play").onclick = launch;
+}
+function moveGame(d) { const n = gamesOf(systems[si]).length; if (!n) return; gi = Math.max(0, Math.min(n - 1, gi + d)); renderList(); remember(); }
+
+let launching = false;
+async function launch() {
+  const g = gamesOf(systems[si])[gi];
+  if (!g || launching) return;
+  if (!g.available) return toast("Bu oyunun dosyası ya da emülatörü sunucuda yok.");
+  launching = true; $("loading").classList.add("on");
+  try {
+    const s = await api("POST", "/api/sessions", { game_id: g.id, owner: "launcher" });
+    location.href = s.play_path;            // same tab: no popup blockers on phones/TVs
+  } catch (e) {
+    $("loading").classList.remove("on");
+    toast(e.message.includes("capacity") ? "Sunucu dolu: önce çalışan bir oyunu kapat." : "Açılamadı: " + e.message);
+    refreshSessions();
+  } finally { launching = false; }
+}
+
+// ---------- running sessions (shown on the system screen, closable) ----------
+async function refreshSessions() {
+  if (!token || view === "login") return;
+  let list = []; try { list = (await api("GET", "/api/sessions")).filter((x) => x.state === "running" || x.state === "starting"); } catch { return; }
+  const bar = $("sessbar"); bar.replaceChildren();
+  if (!list.length) return;
+  bar.append(`Çalışan: `);
+  list.forEach((x, i) => {
+    const b = document.createElement("button"); b.textContent = `${x.game_title} ✕`;
+    b.onclick = async () => { try { await api("DELETE", "/api/sessions/" + x.id); } catch (e) { toast(e.message); } refreshSessions(); };
+    if (i) bar.append("  ·  "); bar.append(b);
+  });
+}
+setInterval(refreshSessions, 10000);
+setInterval(() => { if (!token || view === "login" || document.hidden) return;
+  api("GET", "/api/systems").then((sy) => {
+    const now = sy.map((s) => s.id + ":" + s.games).sort().join(), had = systems.map((s) => s.id + ":" + s.games).sort().join();
+    if (now !== had) load();
+  }).catch(() => {}); }, 15000);
+
+// ---------- input: one action table for keyboard, gamepad, touch and the help bar ----------
+function act(a) {
+  if (view === "sysview") {
+    if (a === "left") moveSystem(-1); else if (a === "right") moveSystem(1);
+    else if (a === "a" || a === "start") enterList();
+    else if (a === "logout") { token = ""; try { sessionStorage.removeItem("rc_tok"); } catch {} show("login"); }
+  } else if (view === "listview") {
+    if (a === "up") moveGame(-1); else if (a === "down") moveGame(1);
+    else if (a === "l" || a === "left") moveGame(-10); else if (a === "r" || a === "right") moveGame(10);
+    else if (a === "a" || a === "start") launch();
+    else if (a === "b") { show("sysview"); renderSystems(); }
+  }
+}
+document.querySelectorAll(".help [data-act]").forEach((b) => b.onclick = () => act(b.dataset.act));
+const KEYS = { ArrowLeft:"left", ArrowRight:"right", ArrowUp:"up", ArrowDown:"down", Enter:"a", x:"a", X:"a",
+               Escape:"b", Backspace:"b", z:"b", Z:"b", q:"l", Q:"l", w:"r", W:"r", PageUp:"l", PageDown:"r" };
+document.addEventListener("keydown", (e) => {
+  if (view === "login") return;
+  const a = KEYS[e.key]; if (!a) return;
+  e.preventDefault(); act(a);
+});
+// Android TV / Mi Box remotes send "GoBack"/"BrowserBack" for the back key
+addEventListener("popstate", () => { if (view === "listview") { act("b"); history.pushState(null, ""); } });
+history.pushState(null, "");
+
+// gamepad: W3C standard mapping (Nintendo-style A on the east button, like the handhelds), with auto-repeat
+const held = {}; let padName = null;
+function poll(ts) {
+  const gp = (navigator.getGamepads ? [...navigator.getGamepads()] : []).find(Boolean);
+  const name = gp ? gp.id.replace(/\s*\(.*$/, "").slice(0, 26) : "";
+  if (name !== padName) { padName = name; document.querySelectorAll(".pad").forEach((p) => { p.textContent = "🎮 " + (name || "—"); p.classList.toggle("on", !!gp); }); }
+  if (gp && view !== "login") {
+    const b = (i) => !!gp.buttons[i] && (gp.buttons[i].pressed || gp.buttons[i].value > 0.5), ax = gp.axes || [];
+    const st = { left: b(14) || ax[0] < -0.5, right: b(15) || ax[0] > 0.5, up: b(12) || ax[1] < -0.5, down: b(13) || ax[1] > 0.5,
+                 a: b(1), b: b(0), l: b(4), r: b(5), start: b(9) };
+    for (const [k, on] of Object.entries(st)) {
+      if (!on) { delete held[k]; continue; }
+      if (held[k] === undefined) { held[k] = ts + 400; act(k); }
+      else if (ts >= held[k] && ["left", "right", "up", "down", "l", "r"].includes(k)) { held[k] = ts + 85; act(k); }
+    }
+  }
+  requestAnimationFrame(poll);
+}
+requestAnimationFrame(poll);
+
+// touch: swipe the carousel
+let sx = null;
+$("carousel").addEventListener("touchstart", (e) => { sx = e.touches[0].clientX; }, { passive: true });
+$("carousel").addEventListener("touchend", (e) => {
+  if (sx === null) return; const dx = e.changedTouches[0].clientX - sx; sx = null;
+  if (Math.abs(dx) > 40) moveSystem(dx < 0 ? 1 : -1);
+}, { passive: true });
+addEventListener("resize", () => { if (view === "sysview") renderSystems(); });
+addEventListener("pageshow", () => $("loading").classList.remove("on"));
+
+const tick = () => document.querySelectorAll(".clock").forEach((c) => c.textContent = new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }));
+tick(); setInterval(tick, 15000);
+show(token ? "sysview" : "login"); load();
 </script>
 </body>
 </html>

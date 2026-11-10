@@ -15,14 +15,17 @@ for _ in $(seq 1 60); do
 done
 
 echo "==> syncing code"
-rsync -az --delete --exclude '.git' --exclude '__pycache__' --exclude '.terraform*' \
+# ROMs are NOT part of the app/image (they can be GBs): only the built-in TestPad goes with the code
+rsync -az --delete --exclude '.git' --exclude '__pycache__' --exclude '.terraform*' --exclude 'node_modules' \
+  --include '/game-worker/roms/testpad/***' --exclude '/game-worker/roms/*' \
   --exclude 'terraform.tfstate*' --exclude '*.tfvars' --exclude 'docker/.env' \
   "$ROOT/game-worker" "$ROOT/docker" "$HOST:/srv/retrocloud/app/"
 
 echo "==> syncing ROM catalog (only legally redistributable content!)"
 rsync -az "$ROOT/game-worker/config/games.json" "$HOST:/srv/retrocloud/roms/games.json"
-rsync -az --include '*/' --include '*.nes' --include '*.sfc' --include '*.gb' --include '*.gbc' \
-  --include '*.md' --include '*.bin' --include '*.cue' --include '*.chd' --exclude '*' \
+"${SSH[@]}" 'mkdir -p /srv/retrocloud/roms/{nes,snes,gb,gbc,gba,sms,gg,md,segacd,psx,pce,ws,atari2600,arcade,neogeo,bios}'
+# everything under game-worker/roms/ (per-system folders like roms/psx/, roms/bios/) except build sources
+rsync -az --exclude '.*' --exclude '*.s' --exclude '*.cfg' --exclude '*.py' --exclude '*.chr' --exclude '*.o' \
   "$ROOT/game-worker/roms/" "$HOST:/srv/retrocloud/roms/"
 
 echo "==> building and starting containers"

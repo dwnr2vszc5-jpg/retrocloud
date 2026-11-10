@@ -126,6 +126,10 @@
       if (y < -0.5) m |= BIT.up;   if (y > 0.5) m |= BIT.down;
     }
     padMask = m; flushInput();
+    // handheld-style hotkey: hold SELECT+START (pad, keyboard or touch) ~1.2 s to leave the game
+    const all = keyMask | touchMask | padMask, combo = BIT.select | BIT.start;
+    if ((all & combo) === combo) { exitHeld ??= performance.now(); if (performance.now() - exitHeld > 1200) exitGame(); }
+    else exitHeld = null;
     requestAnimationFrame(pollPads);
   }
   requestAnimationFrame(pollPads);
@@ -141,6 +145,20 @@
     el.addEventListener("pointerdown", on);
     ["pointerup", "pointercancel", "pointerleave"].forEach((t) => el.addEventListener(t, off));
   });
+
+  // ---------- leave the game: stop the session (launcher token, same tab) and go back ----------
+  let exitHeld = null, exiting = false;
+  async function exitGame() {
+    if (exiting) return; exiting = true; stopped = true;
+    setStatus("Çıkılıyor…");
+    let wt = ""; try { wt = sessionStorage.getItem("rc_tok") || ""; } catch {}
+    try { ws?.close(); pc?.close(); } catch {}
+    if (wt) {
+      try { await fetch(`/api/sessions/${encodeURIComponent(sid)}`, { method: "DELETE", headers: { Authorization: "Bearer " + wt } }); } catch {}
+    }
+    location.href = "/";
+  }
+  $("btn-exit").onclick = exitGame;
 
   // ---------- UI ----------
   startBtn.onclick = () => { video.muted = false; video.play(); startBtn.hidden = true; };

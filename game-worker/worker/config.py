@@ -36,6 +36,9 @@ class Settings:
     games_file: Path = Path(
         os.environ.get("RC_GAMES_FILE", str(Path(__file__).resolve().parent.parent / "config" / "games.json"))
     )
+    systems_file: Path = Path(
+        os.environ.get("RC_SYSTEMS_FILE", str(Path(__file__).resolve().parent.parent / "config" / "systems.json"))
+    )
     roms_dir: Path = Path(os.environ.get("RC_ROMS_DIR", str(Path(__file__).resolve().parent.parent / "roms")))
     cores_dir: Path = Path(os.environ.get("RC_CORES_DIR", "/usr/lib/x86_64-linux-gnu/libretro"))
     web_dir: Path = Path(__file__).resolve().parent.parent / "web"

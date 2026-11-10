@@ -5,3 +5,7 @@ roms/**/*.s
 roms/**/*.cfg
 roms/**/*.py
 roms/**/*.chr
+node_modules
+# user ROM folders (roms/psx, roms/bios, ...) never go into the image
+roms/*
+!roms/testpad

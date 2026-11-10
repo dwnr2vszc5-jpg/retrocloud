@@ -1,0 +1,17 @@
+[
+  {"id": "nes",       "name": "Nintendo Entertainment System", "short": "NES",       "maker": "Nintendo", "year": 1983, "core": "nestopia_libretro.so",       "extensions": ["nes", "unf"]},
+  {"id": "snes",      "name": "Super Nintendo",                "short": "SNES",      "maker": "Nintendo", "year": 1990, "core": "snes9x_libretro.so",         "extensions": ["sfc", "smc"]},
+  {"id": "gb",        "name": "Game Boy",                      "short": "GB",        "maker": "Nintendo", "year": 1989, "core": "gambatte_libretro.so",       "extensions": ["gb"]},
+  {"id": "gbc",       "name": "Game Boy Color",                "short": "GBC",       "maker": "Nintendo", "year": 1998, "core": "gambatte_libretro.so",       "extensions": ["gbc"]},
+  {"id": "gba",       "name": "Game Boy Advance",              "short": "GBA",       "maker": "Nintendo", "year": 2001, "core": "mgba_libretro.so",           "extensions": ["gba"]},
+  {"id": "sms",       "name": "Master System",                 "short": "SMS",       "maker": "Sega",     "year": 1986, "core": "genesis_plus_gx_libretro.so", "extensions": ["sms"]},
+  {"id": "gg",        "name": "Game Gear",                     "short": "GG",        "maker": "Sega",     "year": 1990, "core": "genesis_plus_gx_libretro.so", "extensions": ["gg"]},
+  {"id": "md",        "name": "Mega Drive / Genesis",          "short": "MD",        "maker": "Sega",     "year": 1988, "core": "genesis_plus_gx_libretro.so", "extensions": ["md", "gen", "smd", "bin"]},
+  {"id": "segacd",    "name": "Mega CD / Sega CD",             "short": "MCD",       "maker": "Sega",     "year": 1991, "core": "genesis_plus_gx_libretro.so", "extensions": ["chd", "cue"], "bios": ["bios_CD_E.bin", "bios_CD_U.bin", "bios_CD_J.bin"]},
+  {"id": "psx",       "name": "PlayStation",                   "short": "PS1",       "maker": "Sony",     "year": 1994, "core": "pcsx_rearmed_libretro.so",   "extensions": ["chd", "cue", "pbp", "m3u"]},
+  {"id": "pce",       "name": "PC Engine / TurboGrafx-16",     "short": "PCE",       "maker": "NEC",      "year": 1987, "core": "mednafen_pce_fast_libretro.so", "extensions": ["pce"]},
+  {"id": "ws",        "name": "WonderSwan / Color",            "short": "WS",        "maker": "Bandai",   "year": 1999, "core": "mednafen_wswan_libretro.so", "extensions": ["ws", "wsc"]},
+  {"id": "atari2600", "name": "Atari 2600",                    "short": "2600",      "maker": "Atari",    "year": 1977, "core": "stella2014_libretro.so",     "extensions": ["a26", "bin"]},
+  {"id": "arcade",    "name": "Arcade (FinalBurn Neo)",        "short": "ARCADE",    "maker": "Various",  "year": 1980, "core": "fbneo_libretro.so",          "extensions": ["zip", "7z"]},
+  {"id": "neogeo",    "name": "Neo Geo",                       "short": "NEOGEO",    "maker": "SNK",      "year": 1990, "core": "fbneo_libretro.so",          "extensions": ["zip", "7z"], "bios": ["neogeo.zip"]}
+]

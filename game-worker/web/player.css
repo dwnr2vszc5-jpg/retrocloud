@@ -17,3 +17,39 @@ video { width:100%; height:100%; object-fit:contain; background:#000; }
 .dpad button { border-radius:10px; }
 .meta { display:flex; gap:10px; } .meta button { width:72px; height:30px; border-radius:15px; font-size:11px; }
 .face { display:grid; grid-template-columns:repeat(2,56px); gap:8px; }
+
+/* shoulder buttons (PS1/SNES/GBA need L/R) */
+.shoulders { position:absolute; left:16px; right:16px; bottom:200px; display:flex; justify-content:space-between; pointer-events:none; }
+.shoulders div { display:flex; gap:8px; }
+#touch .shoulders button { width:64px; height:34px; border-radius:10px; font-size:12px; }
+
+/* Portrait phone = handheld layout: screen on top, controls on a "body" below (like a vertical handheld) */
+@media (orientation: portrait) and (pointer: coarse) {
+  body { background:#1b1d24; }
+  #stage { flex-direction:column; justify-content:flex-start; padding-top:env(safe-area-inset-top); }
+  video { height:auto; aspect-ratio:4/3; width:100%; max-height:50vh; border-bottom:3px solid #2b2e38; }
+  #touch { position:relative; inset:auto; flex:1; width:100%; padding:16px 18px calc(16px + env(safe-area-inset-bottom));
+           display:grid; grid-template-columns:1fr 1fr; grid-template-rows:auto 1fr auto; align-items:center; }
+  .shoulders { position:static; grid-column:1 / 3; }
+  .dpad { grid-column:1; grid-row:2; justify-self:start; }
+  .face { grid-column:2; grid-row:2; justify-self:end; }
+  .meta { grid-column:1 / 3; grid-row:3; justify-self:center; }
+  #touch button { background:#2c2f3a; border-color:#3b3f4d; }
+  #touch .face button { background:#3a3f50; }
+  .dpad { grid-template-columns:repeat(3,62px); grid-template-rows:repeat(3,62px); }
+  #touch .dpad button, #touch .face button { width:62px; height:62px; }
+  .face { grid-template-columns:repeat(2,62px); }
+  #bar { top:calc(8px + env(safe-area-inset-top)); right:8px; }
+}
+
+/* face buttons as a diamond (X top, Y left, A right, B bottom) like a handheld */
+.face { grid-template-columns:repeat(3,56px) !important; grid-template-rows:repeat(3,56px); gap:0 !important; }
+.face [data-b=x]{grid-area:1/2} .face [data-b=y]{grid-area:2/1} .face [data-b=a]{grid-area:2/3} .face [data-b=b]{grid-area:3/2}
+@media (orientation: portrait) and (pointer: coarse) {
+  .face { grid-template-columns:repeat(3,62px) !important; grid-template-rows:repeat(3,62px); }
+}
+@media (orientation: portrait) and (pointer: coarse) and (max-width: 430px) {
+  .dpad { grid-template-columns:repeat(3,54px); grid-template-rows:repeat(3,54px); }
+  .face { grid-template-columns:repeat(3,54px) !important; grid-template-rows:repeat(3,54px); }
+  #touch .dpad button, #touch .face button { width:54px; height:54px; }
+}

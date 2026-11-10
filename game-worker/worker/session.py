@@ -179,6 +179,7 @@ class SessionManager:
             for sub in ("home", "saves", "states", "system", "pulse", "logs"):
                 (sdir / sub).mkdir(parents=True, exist_ok=True)
             os.chmod(sdir, 0o700)
+            self._link_bios(sdir / "system")
             sess = Session(sid, secrets.token_urlsafe(32), game, owner, num, sdir)
             self.sessions[sid] = sess
         try:
@@ -190,6 +191,19 @@ class SessionManager:
             await self._kill(sess)
             raise SessionError(f"start failed: {e}") from e
         return sess
+
+    def _link_bios(self, system_dir: Path) -> None:
+        """Expose the user's BIOS files (RC_ROMS_DIR/bios, read-only) to the core via symlinks."""
+        src = self.catalog.bios_dir()
+        if not src.is_dir():
+            return
+        (system_dir / "fbneo").mkdir(exist_ok=True)   # FBNeo looks for neogeo.zip here
+        for f in src.iterdir():
+            if f.is_file() and not f.name.startswith("."):
+                for d in (system_dir, system_dir / "fbneo"):
+                    link = d / f.name
+                    if not link.exists():
+                        link.symlink_to(f.resolve())
 
     async def _spawn(self, sess: Session, name: str, argv: list[str], env: dict[str, str]) -> None:
         logf = open(sess.dir / "logs" / f"{name}.log", "ab")  # noqa: SIM115 - handed to child

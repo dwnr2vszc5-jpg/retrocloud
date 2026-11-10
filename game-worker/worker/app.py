@@ -66,7 +66,16 @@ async def health(request: web.Request) -> web.Response:
 
 async def list_games(request: web.Request) -> web.Response:
     require_worker_token(request)
-    return _json(request.app[MANAGER].catalog.available())
+    catalog = request.app[MANAGER].catalog
+    catalog.rescan()   # pick up ROMs dropped into roms/<system>/ since the last call
+    return _json(catalog.available())
+
+
+async def list_systems(request: web.Request) -> web.Response:
+    require_worker_token(request)
+    catalog = request.app[MANAGER].catalog
+    catalog.rescan()
+    return _json(catalog.systems_summary())
 
 
 async def list_sessions(request: web.Request) -> web.Response:
@@ -224,7 +233,7 @@ async def on_shutdown(app: web.Application) -> None:
 def build_app() -> web.Application:
     init_gstreamer()
     settings.data_dir.mkdir(parents=True, exist_ok=True)
-    catalog = Catalog(settings.games_file, settings.roms_dir, settings.cores_dir)
+    catalog = Catalog(settings.games_file, settings.roms_dir, settings.cores_dir, settings.systems_file)
     app = web.Application(middlewares=[security_headers], client_max_size=64 * 1024)
     app[MANAGER] = SessionManager(settings, catalog)
     app[PEERS] = {}
@@ -232,6 +241,7 @@ def build_app() -> web.Application:
     app[STATE]["self_sampler"].track("worker", os.getpid())
     app.router.add_get("/health", health)
     app.router.add_get("/api/games", list_games)
+    app.router.add_get("/api/systems", list_systems)
     app.router.add_get("/api/sessions", list_sessions)
     app.router.add_post("/api/sessions", create_session)
     app.router.add_get("/api/sessions/{sid}", get_session)

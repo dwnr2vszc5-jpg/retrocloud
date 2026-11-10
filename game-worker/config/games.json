@@ -25,5 +25,14 @@
     "rom": "homebrew/croom.nes",
     "license": "GPL-3.0 - Damian Yerrick (pinobatch), https://github.com/pinobatch/croom-nes",
     "notes": "Memory card game, 1-2 players. Fetch with scripts/fetch_homebrew.sh (not committed)."
+  },
+  {
+    "id": "gba240p",
+    "title": "240p Test Suite (Game Boy Advance)",
+    "system": "gba",
+    "core": "mgba_libretro.so",
+    "rom": "homebrew/gba240p.gba",
+    "license": "GPL-2.0 - Damian Yerrick (pinobatch), https://github.com/pinobatch/240p-test-mini",
+    "notes": "Video test patterns and menus; checks the GBA core. Fetch with scripts/fetch_homebrew.sh (not committed)."
   }
 ]

@@ -12,3 +12,4 @@ docker/.env
 game-worker/roms/**
 !game-worker/roms/testpad/
 !game-worker/roms/testpad/**
+node_modules/

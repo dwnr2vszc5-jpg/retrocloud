@@ -38,6 +38,30 @@ Kontroller: ok tuşları, X = A, Z = B, S = X, A = Y, Q/W = L/R, Enter = Start, 
 
 TestPad: D-pad kareyi hareket ettirir, A ton çalar, B arka plan rengini değiştirir, Select kayan arka planı açar/kapatır, Start kareyi ortalar.
 
+## Sistemler ve oyun ekleme (R36S tarzı klasörler)
+
+Sunucuda `/srv/retrocloud/roms/<sistem>/` klasörüne konan her oyun, launcher'da o sistemin altında kendiliğinden listelenir (~15 sn içinde, yeniden başlatma gerekmez). Yerelde `game-worker/roms/<sistem>/` klasörüne koyup `scripts/deploy.sh` çalıştırmak da aynı işi görür (dosyalar git'e ve Docker imajına girmez).
+
+| Klasör | Sistem | Emülatör (libretro core) | Dosya türleri |
+|---|---|---|---|
+| `nes` | NES / Famicom | Nestopia | .nes .unf |
+| `snes` | Super Nintendo | Snes9x | .sfc .smc |
+| `gb`, `gbc` | Game Boy / Color | Gambatte | .gb / .gbc |
+| `gba` | Game Boy Advance | mGBA | .gba |
+| `sms`, `gg`, `md` | Master System, Game Gear, Mega Drive | Genesis Plus GX | .sms / .gg / .md .gen .smd .bin |
+| `segacd` | Mega CD | Genesis Plus GX | .chd .cue (BIOS gerekir) |
+| `psx` | PlayStation | PCSX ReARMed (dahili HLE BIOS) | .chd .cue .pbp .m3u |
+| `pce` | PC Engine | Beetle PCE Fast | .pce |
+| `ws` | WonderSwan | Beetle WonderSwan | .ws .wsc |
+| `atari2600` | Atari 2600 | Stella 2014 | .a26 .bin |
+| `arcade`, `neogeo` | Arcade, Neo Geo | FinalBurn Neo | .zip (romset adı değişmemeli; Neo Geo için `bios/neogeo.zip`) |
+
+BIOS dosyaları `roms/bios/` klasörüne konur (her oturuma salt okunur bağlanır). PS1 BIOS'suz çalışır; gerçek BIOS (`scph5501.bin` vb.) koyarsanız uyumluluk artar. Sistem listesi `game-worker/config/systems.json`'da; yeni sistem eklemek için core'u Dockerfile'a, satırı bu dosyaya ekleyin.
+
+**Yasal not:** Telifli oyunları biz dağıtmıyoruz. Sadece sahip olduğunuz oyunların kendi yedeklerini, kendi sunucunuzda, kendiniz için kullanın. Repo ve imaj hiçbir telifli ROM/BIOS içermez.
+
+Launcher (`/`): ◀▶ sistem, ▲▼ oyun, A/Enter oyna, L/R 10'ar atla. Oyun içinde SELECT+START'ı ~1 sn basılı tutmak (ya da ✕) oturumu kapatıp listeye döner.
+
 ## Testler
 
 ```bash

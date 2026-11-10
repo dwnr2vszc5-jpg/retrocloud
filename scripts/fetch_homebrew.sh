@@ -14,6 +14,7 @@ mkdir -p "$DEST"
 GAMES=(
   "libbet|pinobatch/libbet|gb|LICENSE"
   "croom|pinobatch/croom-nes|nes|LICENSE.txt"
+  "gba240p|pinobatch/240p-test-mini|gba|LICENSE"
 )
 
 for entry in "${GAMES[@]}"; do
