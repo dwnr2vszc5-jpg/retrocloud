@@ -38,6 +38,16 @@ Kontroller: ok tuşları, X = A, Z = B, S = X, A = Y, Q/W = L/R, Enter = Start, 
 
 TestPad: D-pad kareyi hareket ettirir, A ton çalar, B arka plan rengini değiştirir, Select kayan arka planı açar/kapatır, Start kareyi ortalar.
 
+## Mac'te çalıştırma (ev ağı, bulut ücreti yok)
+
+```bash
+scripts/run_local_mac.sh          # Docker Desktop gerekir; adresi yazar (http://<mac-ip>:8080)
+scripts/run_local_mac.sh --token  # telefonda girilecek token
+scripts/run_local_mac.sh --stop
+```
+
+Mac'in Wi-Fi IP adresi değişirse (DHCP) görüntü bağlanmaz: script'i tekrar çalıştırın ya da modemden IP'yi sabitleyin. Apple M1'de PS1 (Ace Combat 2) 30 fps, emülatör ~%89 tek çekirdek.
+
 ## Sistemler ve oyun ekleme (R36S tarzı klasörler)
 
 Sunucuda `/srv/retrocloud/roms/<sistem>/` klasörüne konan her oyun, launcher'da o sistemin altında kendiliğinden listelenir (~15 sn içinde, yeniden başlatma gerekmez). Yerelde `game-worker/roms/<sistem>/` klasörüne koyup `scripts/deploy.sh` çalıştırmak da aynı işi görür (dosyalar git'e ve Docker imajına girmez).
