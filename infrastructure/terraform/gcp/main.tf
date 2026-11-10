@@ -7,7 +7,7 @@ data "google_project" "this" {}
 
 resource "google_project_service" "apis" {
   for_each = toset(concat(
-    ["compute.googleapis.com", "logging.googleapis.com", "monitoring.googleapis.com"],
+    ["compute.googleapis.com", "logging.googleapis.com", "monitoring.googleapis.com", "iam.googleapis.com", "cloudresourcemanager.googleapis.com"],
     var.billing_account_id != "" ? ["billingbudgets.googleapis.com"] : []
   ))
   service            = each.value

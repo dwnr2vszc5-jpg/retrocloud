@@ -17,6 +17,8 @@ gcloud projects create retrocloud-mvp-<rastgele> --name="RetroCloud MVP"
 gcloud billing accounts list                       # deneme faturalandırma hesabının ID'si
 gcloud billing projects link retrocloud-mvp-<..> --billing-account=XXXXXX-XXXXXX-XXXXXX
 gcloud config set project retrocloud-mvp-<..>
+# Terraform (billing_project override) needs these before its first refresh:
+gcloud services enable serviceusage.googleapis.com cloudresourcemanager.googleapis.com iam.googleapis.com compute.googleapis.com
 ```
 
 Deneme projelerinde vCPU kotası düşük olabilir ve deneme sırasında kota artışı istenemez. 4 vCPU'luk e2-standard-4 genelde sığar; Konsol → IAM → Quotas'ta `CPUS` (europe-west3) ve `CPUS_ALL_REGIONS` değerine bakın.
