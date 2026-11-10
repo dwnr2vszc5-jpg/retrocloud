@@ -47,7 +47,7 @@ try {
 
   // wrong-token attempt on B's socket using A's token, from page A's origin
   const denied = await pa.evaluate(async ([sid, tok]) => new Promise((res) => {
-    const ws = new WebSocket(`ws://${location.host}/ws/${sid}`);
+    const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws/${sid}`);
     ws.onopen = () => ws.send(JSON.stringify({ type: "auth", token: tok }));
     ws.onclose = (e) => res(e.code);
   }), [B.id, A.token]);
